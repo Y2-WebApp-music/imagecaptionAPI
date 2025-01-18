@@ -42,10 +42,10 @@ Ensure you have the following installed:
 
 ### Running the Application
     ```bash
-    cd prototpe1(image base65)
-    
-    cd prototype2(image url)
+    cd prototpe2
     ```
+cd prototpe1(image base65)
+cd prototype2(image url)
 1. Start the FastAPI server:
     ```bash
     uvicorn main:app --reload
