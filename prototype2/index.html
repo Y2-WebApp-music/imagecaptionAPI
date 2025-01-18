@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Image URL Input</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Enter Food Image URL</h1>
+        <form id="urlForm">
+            <input type="text" name="image_url" id="urlInput" placeholder="Enter image URL" required>
+            <button type="submit">Submit</button>
+        </form>
+        <div id="result" class="result" style="display: none;">
+            <h2>Generated Details</h2>
+            <pre id="jsonOutput"></pre>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('urlForm');
+        const resultDiv = document.getElementById('result');
+        const jsonOutput = document.getElementById('jsonOutput');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const imageUrl = document.getElementById('urlInput').value;
+            
+            const requestBody = {
+                image_url: imageUrl
+            };
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/process-url/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                jsonOutput.textContent = JSON.stringify(data.result, null, 2);
+                resultDiv.style.display = 'block';
+            } catch (error) {
+                jsonOutput.textContent = `Error: ${error.message}`;
+                resultDiv.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
