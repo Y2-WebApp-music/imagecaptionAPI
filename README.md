@@ -25,7 +25,7 @@ Ensure you have the following installed:
 
 1. Clone the repository to your local machine:
     ```bash
-    git clone https://github.com/yourusername/yourprojectname.git
+    git clone https://github.com/yourusername/imagecaptionAPI.git
     cd imagecaptionAPI
     ```
 
