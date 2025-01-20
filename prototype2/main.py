@@ -15,21 +15,21 @@ client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 # Initialize FastAPI app
 app = FastAPI()
 
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Replace "*" with specific origins if needed
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# # Add CORS middleware
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],  # Replace "*" with specific origins if needed
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
 
 # Define a request model
 class ImageURLRequest(BaseModel):
     image_url: str
 
 # Define your endpoint
-@app.post("/process-url/")
+@app.post("/image-caption")
 async def process_url(request: ImageURLRequest):
     image_url = request.image_url
 
@@ -44,19 +44,19 @@ async def process_url(request: ImageURLRequest):
                             "type": "text",
                             "text": """
                             "Generate the following details for a food item in JSON format:
-                            Menu: The name of the dish in (Thai Language).
-                            Calorie: The calorie count of the dish.
-                            Carbs: The amount of carbohydrates in grams.
-                            Protein: The amount of protein in grams.
-                            Fat: The amount of fat in grams."
-                            #note no extra word!
+                            food_name: The name of the dish in (Thai Language).
+                            calorie: The calorie count of the dish.
+                            protein: The amount of protein in grams.
+                            carbs: The amount of carbohydrates in grams.                          
+                            fat: The amount of fat in grams."
+                            #note no extra word! and value must be number except food_name
                             example:
                             {
-                            "Menu": "",
-                            "Calorie": "",
-                            "Carbs": "",
-                            "Protein": "",
-                            "Fat": ""
+                            "food_name": "",
+                            "calorie": "",
+                            "protein": "",
+                            "carbs": "",                           
+                            "fat": ""
                             }
                             """,
                         },
@@ -72,6 +72,6 @@ async def process_url(request: ImageURLRequest):
         result = raw.strip("```json").strip().strip("```")
         result_json = json.loads(result)
 
-        return {"result": result_json}
+        return result_json
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
