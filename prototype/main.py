@@ -39,7 +39,7 @@ async def process_image(file: UploadFile = File(...)):
         model="gpt-4o-mini",
         messages=[
             {
-                "role": "user",
+                "role": "system",
                 "content": [
                     {
                     "type": "text",
@@ -59,6 +59,17 @@ async def process_image(file: UploadFile = File(...)):
                     "Protein"":,
                     "Fat": ""
                     }
+                    """,
+                    },
+                ],
+            }
+             {
+                "role": "user",
+                "content": [
+                    {
+                    "type": "text",
+                    "text": """
+
                     """,
                     },
                     {
