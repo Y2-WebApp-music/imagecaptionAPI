@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nutrition Analyzer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f8f8;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            font-size: 24px;
+            text-align: center;
+        }
+        label {
+            font-size: 16px;
+            margin-bottom: 8px;
+            display: block;
+        }
+        input[type="file"],
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Food Nutrition Analyzer</h1>
+        <form id="uploadForm">
+            <label for="file">Upload Image of Thai Dish</label>
+            <input type="file" id="file" name="file" accept="image/*" required>
+
+            <label for="portion_size">Select Portion Size</label>
+            <select id="portion_size" name="portion_size">
+                <option value="small">Small</option>
+                <option value="regular">Regular</option>
+                <option value="large">Large</option>
+            </select>
+
+            <button type="submit">Submit for Analysis</button>
+        </form>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // Event listener for form submission
+        document.getElementById('uploadForm').onsubmit = async function(event) {
+            event.preventDefault();  // Prevent the default form submission
+
+            // Prepare form data
+            const fileInput = document.getElementById("file");
+            const portionSize = document.getElementById("portion_size").value;
+            const formData = new FormData();
+            formData.append("image", fileInput.files[0]);
+            formData.append("portion_size", portionSize);
+
+            // Send POST request to FastAPI backend
+            try {
+                const response = await fetch("http://localhost:8000/analyze", {
+                    method: "POST",
+                    body: formData,
+                });
+
+                const data = await response.json();
+
+                // Handle the result or errors
+                if (data.Menu) {
+                    const resultHtml = `
+                        <h2>Nutritional Estimate</h2>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                    document.getElementById("result").innerHTML = resultHtml;
+                } else {
+                    document.getElementById("result").innerHTML = `<p>Error: ${data.error || 'Unknown error'}</p>`;
+                }
+            } catch (error) {
+                document.getElementById("result").innerHTML = `<p>Error: Failed to analyze the image</p>`;
+            }
+        };
+    </script>
+</body>
+</html>
