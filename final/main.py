@@ -91,11 +91,11 @@ async def analyze_nutrition(
 
         # Get OpenAI response
         response = client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-4o-mini",
             messages=messages,
             temperature=0.5,
             response_format={"type": "json_object"},
-            timeout=30  # Increased timeout for image processing
+            timeout=10  # Increased timeout for image processing
         )
 
         return eval(response.choices[0].message.content)
