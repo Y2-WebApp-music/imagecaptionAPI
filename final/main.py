@@ -44,8 +44,8 @@ SYSTEM_PROMPT = """Generate nutritional estimates for this Thai dish in JSON for
 
 1. Menu: Thai name only (no English)
 2. Values must be numerical approximations:
-   - Calorie: Total kcal (300-1200 range)
-   - Carbs/Protein/Fat: Grams (10-100 range)
+   - Calorie: Total kcal 
+   - Carbs/Protein/Fat: Grams 
 3. Base estimates on common Thai ingredients
 4. Even uncertain, provide logical estimates
 5. Strict JSON format (no markdown, no comments)
@@ -91,7 +91,7 @@ async def analyze_nutrition(
 
         # Get OpenAI response
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4o-2024-11-20",
             messages=messages,
             temperature=0.5,
             response_format={"type": "json_object"},

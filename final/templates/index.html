@@ -1,118 +1,177 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nutrition Analyzer</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f8f8f8;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        h1 {
-            font-size: 24px;
-            text-align: center;
-        }
-        label {
-            font-size: 16px;
-            margin-bottom: 8px;
-            display: block;
-        }
-        input[type="file"],
-        select {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 16px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        button {
-            width: 100%;
-            padding: 12px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        #result {
-            margin-top: 20px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            background-color: #f9f9f9;
-            border-radius: 4px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nutrition Analyzer</title>
+  <style>
+    /* Define CSS variables for easy theme adjustments */
+    :root {
+      --background-color: #121212;
+      --container-bg: #1e1e1e;
+      --text-color: #f0f0f0;
+      --border-color: #444;
+      --primary-color: #007bff;
+      --primary-color-hover: #0056b3;
+      --input-bg: #2c2c2c;
+    }
+  
+    /* Global styles */
+    body {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: var(--background-color);
+      color: var(--text-color);
+    }
+  
+    /* Container styles */
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
+      background-color: var(--container-bg);
+      padding: 20px 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    }
+  
+    /* Header styling */
+    h1 {
+      font-size: 28px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+  
+    /* Label styling */
+    label {
+      font-size: 16px;
+      margin-bottom: 8px;
+      display: block;
+    }
+  
+    /* Input and select styling */
+    input[type="file"],
+    select {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      background-color: var(--input-bg);
+      color: var(--text-color);
+    }
+  
+    /* Button styling */
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: var(--primary-color);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+  
+    button:hover {
+      background-color: var(--primary-color-hover);
+    }
+  
+    /* Image preview styling */
+    #preview {
+      display: none;
+      max-width: 100%;
+      margin-top: 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+    }
+  
+    /* Result container styling */
+    #result {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid var(--border-color);
+      background-color: var(--container-bg);
+      border-radius: 4px;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Food Nutrition Analyzer</h1>
-        <form id="uploadForm">
-            <label for="file">Upload Image of Thai Dish</label>
-            <input type="file" id="file" name="file" accept="image/*" required>
+  <div class="container">
+    <h1>Food Nutrition Analyzer</h1>
+    <form id="uploadForm">
+      <label for="file">Upload Image of Thai Dish</label>
+      <input type="file" id="file" name="file" accept="image/*" required>
+      <!-- Preview image -->
+      <img id="preview" alt="Image preview" />
 
-            <label for="portion_size">Select Portion Size</label>
-            <select id="portion_size" name="portion_size">
-                <option value="small">Small</option>
-                <option value="regular">Regular</option>
-                <option value="large">Large</option>
-            </select>
+      <label for="portion_size">Select Portion Size</label>
+      <select id="portion_size" name="portion_size">
+        <option value="small">Small</option>
+        <option value="regular">Regular</option>
+        <option value="large">Large</option>
+      </select>
 
-            <button type="submit">Submit for Analysis</button>
-        </form>
+      <button type="submit">Submit for Analysis</button>
+    </form>
 
-        <div id="result"></div>
-    </div>
+    <div id="result"></div>
+  </div>
 
-    <script>
-        // Event listener for form submission
-        document.getElementById('uploadForm').onsubmit = async function(event) {
-            event.preventDefault();  // Prevent the default form submission
+  <script>
+    // Show image preview when a file is selected
+    const fileInput = document.getElementById("file");
+    const previewImage = document.getElementById("preview");
 
-            // Prepare form data
-            const fileInput = document.getElementById("file");
-            const portionSize = document.getElementById("portion_size").value;
-            const formData = new FormData();
-            formData.append("image", fileInput.files[0]);
-            formData.append("portion_size", portionSize);
+    fileInput.addEventListener("change", function() {
+      const file = this.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          previewImage.src = e.target.result;
+          previewImage.style.display = "block";
+        }
+        reader.readAsDataURL(file);
+      } else {
+        previewImage.src = "";
+        previewImage.style.display = "none";
+      }
+    });
 
-            // Send POST request to FastAPI backend
-            try {
-                const response = await fetch("http://localhost:8000/analyze", {
-                    method: "POST",
-                    body: formData,
-                });
+    // Event listener for form submission
+    document.getElementById('uploadForm').onsubmit = async function(event) {
+      event.preventDefault();  // Prevent the default form submission
 
-                const data = await response.json();
+      // Prepare form data
+      const portionSize = document.getElementById("portion_size").value;
+      const formData = new FormData();
+      formData.append("image", fileInput.files[0]);
+      formData.append("portion_size", portionSize);
 
-                // Handle the result or errors
-                if (data.Menu) {
-                    const resultHtml = `
-                        <h2>Nutritional Estimate</h2>
-                        <pre>${JSON.stringify(data, null, 2)}</pre>
-                    `;
-                    document.getElementById("result").innerHTML = resultHtml;
-                } else {
-                    document.getElementById("result").innerHTML = `<p>Error: ${data.error || 'Unknown error'}</p>`;
-                }
-            } catch (error) {
-                document.getElementById("result").innerHTML = `<p>Error: Failed to analyze the image</p>`;
-            }
-        };
-    </script>
+      // Send POST request to FastAPI backend
+      try {
+        const response = await fetch("http://localhost:8000/analyze", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await response.json();
+
+        // Handle the result or errors
+        if (data.Menu) {
+          const resultHtml = `
+            <h2>Nutritional Estimate</h2>
+            <pre>${JSON.stringify(data, null, 2)}</pre>
+          `;
+          document.getElementById("result").innerHTML = resultHtml;
+        } else {
+          document.getElementById("result").innerHTML = `<p>Error: ${data.error || 'Unknown error'}</p>`;
+        }
+      } catch (error) {
+        document.getElementById("result").innerHTML = `<p>Error: Failed to analyze the image</p>`;
+      }
+    };
+  </script>
 </body>
 </html>

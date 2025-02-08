@@ -26,7 +26,7 @@ def resize_image(image_path, output_path, scale=0.2):
         resized_img.save(output_path)
 
 # Local image path 
-image_path = r"image\kangjead.jpeg"  # Added raw string for Windows path
+image_path = r"image\krapaomoo-sub.jpg"  # Added raw string for Windows path
 resized_image_path = "image/kangjead_resized.jpeg"
 
 # Resize and encode image once (shared for both sizes)

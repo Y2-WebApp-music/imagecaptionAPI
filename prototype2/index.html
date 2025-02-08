@@ -3,58 +3,190 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Food Image URL Input</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Food Nutrition Analyzer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 600px;
+            margin: 2rem;
+        }
+
+        h1 {
+            color: #1a1a1a;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+        }
+
+        .upload-section {
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .custom-upload {
+            background: #007bff;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+
+        .custom-upload:hover {
+            background: #0056b3;
+        }
+
+        #fileName {
+            color: #666;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        #previewImage {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            margin: 1rem 0;
+            display: none;
+        }
+
+        #loading {
+            text-align: center;
+            margin: 1rem 0;
+            color: #666;
+            display: none;
+        }
+
+        .result {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1.5rem;
+            display: none;
+        }
+
+        .result h2 {
+            color: #1a1a1a;
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+
+        #jsonOutput {
+            background: white;
+            padding: 1rem;
+            border-radius: 6px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 1rem;
+                margin: 1rem;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <h1>Enter Food Image URL</h1>
-        <form id="urlForm">
-            <input type="text" name="image_url" id="urlInput" placeholder="Enter image URL" required>
-            <input type="text" name="extra_condition" id="extraInput" placeholder="Enter extra condition">
-            <button type="submit">Submit</button>
-        </form>
-        <div id="loading" style="display: none;">Loading...</div>
-        <div id="result" class="result" style="display: none;">
-            <h2>Generated Details</h2>
+        <h1>🍜 Food Nutrition Analyzer</h1>
+        
+        <div class="upload-section">
+            <input type="file" id="fileInput" accept="image/*">
+            <label for="fileInput" class="custom-upload">Choose Food Image</label>
+            <span id="fileName">No file selected</span>
+            <img id="previewImage" alt="Preview">
+            <button onclick="analyzeImage()" class="custom-upload">Analyze Nutrition</button>
+        </div>
+
+        <div id="loading">🔍 Analyzing image... Please wait</div>
+        
+        <div class="result" id="result">
+            <h2>Nutrition Facts</h2>
             <pre id="jsonOutput"></pre>
         </div>
     </div>
 
     <script>
-        const form = document.getElementById('urlForm');
+        const fileInput = document.getElementById('fileInput');
+        const fileName = document.getElementById('fileName');
+        const previewImage = document.getElementById('previewImage');
         const resultDiv = document.getElementById('result');
         const jsonOutput = document.getElementById('jsonOutput');
         const loadingDiv = document.getElementById('loading');
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const imageUrl = document.getElementById('urlInput').value;
-            const extraCondition = document.getElementById('extraInput').value;
+        // Show file name and preview when file is selected
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                fileName.textContent = file.name;
+                
+                // Show image preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                    previewImage.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
 
-            const requestBody = {
-                image_url: imageUrl,
-                extra_condition: extraCondition
-            };
+        async function analyzeImage() {
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Please select an image file first!');
+                return;
+            }
 
             resultDiv.style.display = 'none';
             loadingDiv.style.display = 'block';
 
             try {
-                const response = await fetch('http://127.0.0.1:8000/process-url/', {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const response = await fetch('http://localhost:8000/image-caption', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(requestBody),
+                    body: formData,
                 });
 
                 if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Analysis failed');
                 }
 
                 const data = await response.json();
-                jsonOutput.textContent = JSON.stringify(data.result, null, 2);
+                jsonOutput.textContent = JSON.stringify(data, null, 2);
                 resultDiv.style.display = 'block';
             } catch (error) {
                 jsonOutput.textContent = `Error: ${error.message}`;
@@ -62,7 +194,7 @@
             } finally {
                 loadingDiv.style.display = 'none';
             }
-        });
+        }
     </script>
 </body>
 </html>
