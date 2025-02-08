@@ -41,16 +41,15 @@ def resize_and_encode_image(image_data: bytes, width: int = 586, height: int = 7
         raise HTTPException(400, f"Image processing failed: {str(e)}")
 
 SYSTEM_PROMPT = """Generate nutritional estimates for this Thai dish in JSON format. Follow these rules:
-
 1. Menu: Thai name only (no English)
 2. Values must be numerical approximations:
-   - Calorie: Total kcal 
+   - Calorie: Total: kcal 
    - Carbs/Protein/Fat: Grams 
-3. Base estimates on common Thai ingredients
+3. Base estimates on common ingredients
 4. Even uncertain, provide logical estimates
 5. Strict JSON format (no markdown, no comments)
 
-Example valid response:
+Example valid response food:
 {
     "Menu": "กระเพราหมูสับไข่ดาว",
     "Calorie": 700,
