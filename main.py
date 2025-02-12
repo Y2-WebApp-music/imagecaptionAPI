@@ -1,6 +1,7 @@
 import os
 import base64
 import io
+import json
 from fastapi import FastAPI, HTTPException
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -84,14 +85,21 @@ async def analyze_nutrition(request: ImageRequest):
 
         # Get OpenAI response
         response = client.chat.completions.create(
-            model="gpt-4o-2024-11-20",
+            model="gpt-4o",
             messages=messages,
             temperature=0.5,
             response_format={"type": "json_object"},
             timeout=10  # Increased timeout for image processing
         )
+        
+        result = json.loads(response.choices[0].message.content)
+        if result.get("food_name") != "น้ำเปล่า" and result.get("calorie") == 0:
+            message = {
+                "message": "This is not food."
+            }
+            return message
 
-        return eval(response.choices[0].message.content)
+        return result
 
     except HTTPException as he:
         raise he
