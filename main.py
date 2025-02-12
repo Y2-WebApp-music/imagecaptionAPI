@@ -17,23 +17,24 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # Create FastAPI app
 app = FastAPI(title="Nutrition Analyzer API")
 
-SYSTEM_PROMPT = """Generate nutritional estimates for this Thai dish in JSON format. Follow these rules:
-
-1. food_name: Thai name only (no English)
-2. Values must be numerical approximations:
-   - calorie: Total kcal (300-1200 range)
-   - protein/carbs/fat: Grams (10-100 range)
-3. Base estimates on common Thai ingredients
-4. Even uncertain, provide logical estimates
-5. Strict JSON format (no markdown, no comments)
+SYSTEM_PROMPT =""" Generate nutritional estimates for a dish and output the result in strict JSON format. Follow these detailed instructions:
+1. Use the key "food_name" to represent the dish's name, and provide the name in Thai only (do not include any English).
+2. Include numerical approximations for the following keys:
+   - "calorie": Total kilocalories (kcal)
+   - "protein": Grams of protein
+   - "carbs": Grams of carbohydrates
+   - "fat": Grams of fat
+3. Base your estimates on common ingredients typically used in this dish.
+4. Even if exact values are uncertain, provide logical and reasonable approximations.
+5. The response must be output in strict JSON format with no markdown formatting or additional commentary.
 
 Example valid response:
 {
-    "food_name": "กระเพราหมูสับไข่ดาว",
-    "calorie": 700,
-    "protein": 35,
-    "carbs": 45,
-    "fat": 40
+    "food_name": "ต้มยำกุ้ง",
+    "calorie": 350,
+    "protein": 25,
+    "carbs": 15,
+    "fat": 20
 }
 """
 
@@ -83,7 +84,7 @@ async def analyze_nutrition(request: ImageRequest):
 
         # Get OpenAI response
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4o-2024-11-20",
             messages=messages,
             temperature=0.5,
             response_format={"type": "json_object"},
