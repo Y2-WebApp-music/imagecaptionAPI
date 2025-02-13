@@ -107,4 +107,5 @@ response = client.chat.completions.create(
 # Extracting and printing the response
 x = response.choices[0].message.content
 print(x)
-print(len(base64_image)+total_tokens)
+print(base64_image)
+

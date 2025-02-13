@@ -1,6 +1,8 @@
 import os
 import base64
 import io
+import json
+import logging
 from fastapi import FastAPI, HTTPException
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -17,7 +19,7 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # Create FastAPI app
 app = FastAPI(title="Nutrition Analyzer API")
 
-SYSTEM_PROMPT =""" Generate nutritional estimates for a dish and output the result in strict JSON format. Follow these detailed instructions:
+SYSTEM_PROMPT = """ Generate nutritional estimates for a dish and output the result in strict JSON format. Follow these detailed instructions:
 1. Use the key "food_name" to represent the dish's name, and provide the name in Thai only (do not include any English).
 2. Include numerical approximations for the following keys:
    - "calorie": Total kilocalories (kcal)
@@ -27,7 +29,7 @@ SYSTEM_PROMPT =""" Generate nutritional estimates for a dish and output the resu
 3. Base your estimates on common ingredients typically used in this dish.
 4. Even if exact values are uncertain, provide logical and reasonable approximations.
 5. The response must be output in strict JSON format with no markdown formatting or additional commentary.
-
+6.IF it not a food aawser in english language "นี่ไม่ใช่อาหาร อย่าโง่"  
 Example valid response:
 {
     "food_name": "ต้มยำกุ้ง",
@@ -42,9 +44,10 @@ class ImageRequest(BaseModel):
     image: str  # Must be raw base64 (without prefix)
     portion: str = "regular"
 
-# Function to validate & process base64 image
-def decode_and_resize_base64(image: str, width: int = 586, height: int = 780) -> str:
-    """Validates, decodes, and resizes base64 image."""
+def decode_and_resize_base64(image: str, width: int = 300, height: int = 300) -> str:
+    """
+    Validates, decodes, and resizes a base64 image.
+    """
     try:
         # Decode the raw base64 image string (already stripped of metadata)
         image_data = base64.b64decode(image)
@@ -61,24 +64,25 @@ def decode_and_resize_base64(image: str, width: int = 586, height: int = 780) ->
     except Exception as e:
         raise HTTPException(400, f"Image processing failed: {str(e)}")
 
+# Set up basic logging configuration
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 @app.post("/image-caption", response_model=Dict[str, Any], summary="Analyze food nutrition from base64 image")
 async def analyze_nutrition(request: ImageRequest):
     """
-    Analyze food image sent as a base64 string (without metadata) and return nutrition estimates.
-    
-    Returns:
-        JSON object containing food name and nutritional values.
+    Analyze a food image (provided as a raw base64 string) and return nutritional estimates.
     """
     try:
-        # Validate & resize base64 image
+        # Validate & resize the base64 image
         processed_image = decode_and_resize_base64(request.image)
 
         # Prepare request for OpenAI
         messages = [
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": [
-                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{processed_image}"}},
-                {"type": "text", "text": f"Portion size: {request.portion}"}
+                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,
+                {processed_image}Portion size: {request.portion}"}},
             ]}
         ]
 
@@ -88,14 +92,22 @@ async def analyze_nutrition(request: ImageRequest):
             messages=messages,
             temperature=0.5,
             response_format={"type": "json_object"},
-            timeout=10  # Increased timeout for image processing
+            timeout=20 # Increased timeout for image processing
         )
 
-        return eval(response.choices[0].message.content)
+        content = response.choices[0].message.content
+        if content is None:
+            logger.error("No content received from the OpenAI API.")
+            raise HTTPException(500, "No content received from the OpenAI API.")
+
+        result = json.loads(content)
+        return result
 
     except HTTPException as he:
+        logger.error(f"HTTPException occurred: {he.detail}")
         raise he
     except Exception as e:
+        logger.exception("Analysis failed:")
         raise HTTPException(500, f"Analysis failed: {str(e)}")
 
 if __name__ == "__main__":
