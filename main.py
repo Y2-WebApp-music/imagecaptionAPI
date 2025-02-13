@@ -92,14 +92,14 @@ async def analyze_nutrition(request: ImageRequest):
             timeout=10  # Increased timeout for image processing
         )
         
-        result = json.loads(response.choices[0].message.content)
-        if result.get("food_name") != "น้ำเปล่า" and result.get("calorie") == 0:
-            message = {
-                "message": "This is not food."
-            }
-            return message
+        # result = json.loads(response.choices[0].message.content)
+        # if result.get("food_name") != "น้ำเปล่า" and result.get("calorie") == 0:
+        #     message = {
+        #         "message": "This is not food."
+        #     }
+        #     return message
 
-        return result
+        return eval(response.choices[0].message.content)
 
     except HTTPException as he:
         raise he
