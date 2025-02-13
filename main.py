@@ -29,7 +29,7 @@ SYSTEM_PROMPT = """ Generate nutritional estimates for a dish and output the res
 3. Base your estimates on common ingredients typically used in this dish.
 4. Even if exact values are uncertain, provide logical and reasonable approximations.
 5. The response must be output in strict JSON format with no markdown formatting or additional commentary.
-6.IF it not a food aawser in english language "นี่ไม่ใช่อาหาร อย่าโง่"  
+6.IF it not a food aawser in english language "นี่ไม่ใช่อาหาร"  
 Example valid response:
 {
     "food_name": "ต้มยำกุ้ง",
@@ -81,8 +81,8 @@ async def analyze_nutrition(request: ImageRequest):
         messages = [
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": [
-                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,
-                {processed_image}Portion size: {request.portion}"}},
+                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{processed_image}"}},
+                {"type": "text", "text": f"Portion size: {request.portion}"}
             ]}
         ]
 
@@ -90,7 +90,7 @@ async def analyze_nutrition(request: ImageRequest):
         response = client.chat.completions.create(
             model="gpt-4o-2024-11-20",
             messages=messages,
-            temperature=0.5,
+            temperature=0.3,
             response_format={"type": "json_object"},
             timeout=20 # Increased timeout for image processing
         )
@@ -101,6 +101,7 @@ async def analyze_nutrition(request: ImageRequest):
             raise HTTPException(500, "No content received from the OpenAI API.")
 
         result = json.loads(content)
+        print(result)
         return result
 
     except HTTPException as he:
