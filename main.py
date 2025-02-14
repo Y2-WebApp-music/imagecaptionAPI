@@ -18,17 +18,25 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # Create FastAPI app
 app = FastAPI(title="Nutrition Analyzer API")
 
-SYSTEM_PROMPT =""" Generate nutritional estimates for a dish and output the result in strict JSON format. Follow these detailed instructions:
-1. Use the key "food_name" to represent the dish's name, and provide the name in Thai only (do not include any English).
-2. Include numerical approximations for the following keys:
-   - "calorie": Total kilocalories (kcal)
-   - "protein": Grams of protein
-   - "carbs": Grams of carbohydrates
-   - "fat": Grams of fat
-3. Base your estimates on common ingredients typically used in this dish.
-4. Even if exact values are uncertain, provide logical and reasonable approximations.
-5. The response must be output in strict JSON format with no markdown formatting or additional commentary.
-
+SYSTEM_PROMPT = """You are a nutrition expert. Your task is to analyze food images and provide an estimated nutritional breakdown in strict JSON format. Follow these rules carefully:
+1. Use the key "food_name" to represent the dish name, and always provide the name in Thai only (no English translation).
+2. Provide estimated numerical values for the following nutritional components:
+   - "calorie": Total calories (kcal)
+   - "protein": Protein content (grams)
+   - "carbs": Carbohydrate content (grams)
+   - "fat": Fat content (grams)
+3. Base your estimations on common ingredients typically used in the dish.
+4. If exact values are uncertain, provide reasonable and logical approximations.
+5. The response must be in strict JSON format, without any markdown formatting, additional commentary, or explanations.
+6. If the input is not a food item, return the following JSON response:
+   {
+       "food_name": "นี่ไม่ใช่อาหาร",
+       "calorie": 0,
+       "protein": 0,
+       "carbs": 0,
+       "fat": 0
+   }
+  
 Example valid response:
 {
     "food_name": "ต้มยำกุ้ง",
@@ -44,7 +52,7 @@ class ImageRequest(BaseModel):
     portion: str = "regular"
 
 # Function to validate & process base64 image
-def decode_and_resize_base64(image: str, width: int = 586, height: int = 780) -> str:
+def decode_and_resize_base64(image: str, width: int = 300, height: int = 300) -> str:
     """Validates, decodes, and resizes base64 image."""
     try:
         # Decode the raw base64 image string (already stripped of metadata)
@@ -66,9 +74,6 @@ def decode_and_resize_base64(image: str, width: int = 586, height: int = 780) ->
 async def analyze_nutrition(request: ImageRequest):
     """
     Analyze food image sent as a base64 string (without metadata) and return nutrition estimates.
-    
-    Returns:
-        JSON object containing food name and nutritional values.
     """
     try:
         # Validate & resize base64 image
@@ -85,19 +90,12 @@ async def analyze_nutrition(request: ImageRequest):
 
         # Get OpenAI response
         response = client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-4o-2024-11-20",
             messages=messages,
             temperature=0.5,
             response_format={"type": "json_object"},
             timeout=10  # Increased timeout for image processing
         )
-        
-        # result = json.loads(response.choices[0].message.content)
-        # if result.get("food_name") != "น้ำเปล่า" and result.get("calorie") == 0:
-        #     message = {
-        #         "message": "This is not food."
-        #     }
-        #     return message
 
         return eval(response.choices[0].message.content)
 
