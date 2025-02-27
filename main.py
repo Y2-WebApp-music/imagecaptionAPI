@@ -42,7 +42,7 @@ class ImageRequest(BaseModel):
     portion: str = "regular"
 
 # Function to validate & process base64 image
-def decode_and_resize_base64(image: str, width: int = 586, height: int = 780) -> str:
+def decode_and_resize_base64(image: str, width: int = 300, height: int = 300) -> str:
     """Validates, decodes, and resizes base64 image."""
     try:
         # Decode the raw base64 image string (already stripped of metadata)
@@ -83,7 +83,7 @@ async def analyze_nutrition(request: ImageRequest):
 
         # Get OpenAI response
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4o",
             messages=messages,
             temperature=0.5,
             response_format={"type": "json_object"},
