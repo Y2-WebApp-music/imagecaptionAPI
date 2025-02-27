@@ -1,7 +1,6 @@
 import os
 import base64
 import io
-import json
 from fastapi import FastAPI, HTTPException
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -18,7 +17,7 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # Create FastAPI app
 app = FastAPI(title="Nutrition Analyzer API")
 
-SYSTEM_PROMPT = """You are a nutrition expert. Your task is to analyze food images and provide an estimated nutritional breakdown in strict JSON format. Follow these rules carefully:
+SYSTEM_PROMPT = """Analyze food images and provide an estimated nutritional breakdown in strict JSON format. Follow these rules carefully:
 1. Use the key "food_name" to represent the dish name, and always provide the name in Thai only (no English translation).
 2. Provide estimated numerical values for the following nutritional components:
    - "calorie": Total calories (kcal)
@@ -52,7 +51,7 @@ class ImageRequest(BaseModel):
     portion: str = "regular"
 
 # Function to validate & process base64 image
-def decode_and_resize_base64(image: str, width: int = 300, height: int = 300) -> str:
+def decode_and_resize_base64(image: str, width: int = 250, height: int = 250) -> str:
     """Validates, decodes, and resizes base64 image."""
     try:
         # Decode the raw base64 image string (already stripped of metadata)
